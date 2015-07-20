@@ -1,4 +1,4 @@
-source := $(shell find ./ -name *.go)
+source := $(shell find ./ -name '*.go')
 
 all:: face_detector
 

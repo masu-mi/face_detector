@@ -48,7 +48,7 @@ func init() {
 
 // ControllPannel : 画像アップロード用コンパネ
 func ControllPannel(c web.C, w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Content-Type", "text/html; charset=UTF-8")
 	app.Template.ExecuteTemplate(w, "ControllPannel", nil)
 }
 

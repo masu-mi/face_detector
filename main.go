@@ -9,7 +9,10 @@ import (
 )
 
 func route(m *web.Mux) {
+	// m.Get("/face_detect/:id", controllers.DetectResult)
+
 	m.Get("/face_detect", controllers.ControllPannel)
+	m.Post("/face_detect", controllers.RegisterFace)
 }
 
 func main() {

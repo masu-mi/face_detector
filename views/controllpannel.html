@@ -1,6 +1,6 @@
 {{define "ControllPannel"}}
 <h1>位置を確認したい画像(image/jpeg)をアップロードしてね</h1>
-<form method="post" action="">
+<form method="post" action="" enctype="multipart/form-data">
   <input name="body" type="file" accept=".jpeg,.jpg">
   <input type="submit" value="送信する">
 </form>

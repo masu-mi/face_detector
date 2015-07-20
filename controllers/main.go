@@ -80,7 +80,7 @@ func RegisterFace(c web.C, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	detect(sourcePath, resultPath)
-	http.Redirect(w, r, fmt.Sprintf("/face_detect/%s.jpg", uuid), http.StatusFound)
+	http.Redirect(w, r, fmt.Sprintf("/face_detect/%s", uuid), http.StatusFound)
 }
 
 func detect(source, savePath string) {

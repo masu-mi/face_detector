@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/masu-mi/face_detector/contorollers"
+	"github.com/masu-mi/face_detector/controllers"
 	"github.com/zenazn/goji"
 	"github.com/zenazn/goji/web"
 )

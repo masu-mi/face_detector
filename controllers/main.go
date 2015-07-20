@@ -84,7 +84,6 @@ func RegisterFace(c web.C, w http.ResponseWriter, r *http.Request) {
 }
 
 func detect(source, savePath string) {
-
 	tarImg := C.cvLoadImage(
 		C.CString(source),
 		C.CV_LOAD_IMAGE_ANYDEPTH|C.CV_LOAD_IMAGE_ANYCOLOR,

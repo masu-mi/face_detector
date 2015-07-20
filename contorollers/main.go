@@ -55,7 +55,7 @@ func ControllPannel(c web.C, w http.ResponseWriter, r *http.Request) {
 // RegisterFace : アップロード画像の処理を行う
 func RegisterFace(c web.C, w http.ResponseWriter, r *http.Request) {
 	uuid := uuid.New()
-	file, header, err := r.FormFile("body")
+	file, _, err := r.FormFile("body")
 	if err != nil {
 		fmt.Print(err.Error())
 		w.WriteHeader(500)
@@ -79,9 +79,8 @@ func RegisterFace(c web.C, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 		return
 	}
-	fmt.Fprintln(w, fmt.Sprintf("File uploaded successfully : %s", uuid))
-	fmt.Fprintln(w, header.Filename)
 	detect(sourcePath, resultPath)
+	http.Redirect(w, r, fmt.Sprintf("/face_detect/%s.jpg", uuid), http.StatusFound)
 }
 
 func detect(source, savePath string) {

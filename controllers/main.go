@@ -17,6 +17,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 
+	"github.com/k0kubun/pp"
 	"github.com/zenazn/goji/web"
 )
 
@@ -79,17 +80,26 @@ func RegisterFace(c web.C, w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, err)
 		return
 	}
-	detect(sourcePath, resultPath)
+
+	img := getImg(sourcePath)
+	defer C.cvReleaseImage(&img)
+	faces := detect(img)
+	rects := convertToRectagles(faces)
+	pp.Print(rects)
+	addRectanglesToImage(img, faces)
+	saveImage(resultPath, img)
+
 	http.Redirect(w, r, fmt.Sprintf("/face_detect/%s", uuid), http.StatusFound)
 }
 
-func detect(source, savePath string) {
-	tarImg := C.cvLoadImage(
+func getImg(source string) *C.IplImage {
+	return C.cvLoadImage(
 		C.CString(source),
 		C.CV_LOAD_IMAGE_ANYDEPTH|C.CV_LOAD_IMAGE_ANYCOLOR,
 	)
-	defer C.cvReleaseImage(&tarImg)
+}
 
+func detect(tarImg *C.IplImage) *C.CvSeq {
 	cvHCC := (*C.CvHaarClassifierCascade)(
 		C.cvLoad(C.CString("./config/haarcascade_frontalface_default.xml"),
 			(*C.CvMemStorage)(nil),
@@ -97,7 +107,7 @@ func detect(source, savePath string) {
 			(**C.char)(nil)))
 	cvMStr := C.cvCreateMemStorage(0)
 
-	face := C.cvHaarDetectObjects(
+	return C.cvHaarDetectObjects(
 		unsafe.Pointer(tarImg),
 		cvHCC,
 		cvMStr,
@@ -107,17 +117,38 @@ func detect(source, savePath string) {
 		C.cvSize(0, 0),
 		C.cvSize(0, 0),
 	)
-	for i := C.int(0); i < face.total; i++ {
-		faceRect := (*C.CvRect)(unsafe.Pointer(C.cvGetSeqElem(face, i)))
+}
+
+func convertToRectagles(cvRects *C.CvSeq) [][4]int {
+	result := make([][4]int, 0, cvRects.total)
+	for i := C.int(0); i < cvRects.total; i++ {
+		cvRect := (*C.CvRect)(unsafe.Pointer(C.cvGetSeqElem(cvRects, i)))
+		result = append(
+			result,
+			[4]int{
+				int(cvRect.x), int(cvRect.y),
+				int(cvRect.x + cvRect.width), int(cvRect.y + cvRect.height),
+			},
+		)
+	}
+	return result
+}
+
+func addRectanglesToImage(img *C.IplImage, cvRects *C.CvSeq) {
+	for i := C.int(0); i < cvRects.total; i++ {
+		rect := (*C.CvRect)(unsafe.Pointer(C.cvGetSeqElem(cvRects, i)))
 		C.cvRectangle(
-			unsafe.Pointer(tarImg),
-			C.cvPoint(faceRect.x, faceRect.y),
-			C.cvPoint(faceRect.x+faceRect.width, faceRect.y+faceRect.height),
+			unsafe.Pointer(img),
+			C.cvPoint(rect.x, rect.y),
+			C.cvPoint(rect.x+rect.width, rect.y+rect.height),
 			C.cvScalar(0, 0, 255, 0),
 			3,
 			C.CV_AA,
 			0,
 		)
 	}
-	C.cvSaveImage(C.CString(savePath), unsafe.Pointer(tarImg), (*C.int)(nil))
+}
+
+func saveImage(name string, img *C.IplImage) {
+	C.cvSaveImage(C.CString(name), unsafe.Pointer(img), (*C.int)(nil))
 }
